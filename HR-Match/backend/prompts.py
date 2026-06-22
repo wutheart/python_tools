@@ -45,56 +45,56 @@ RESUME_AGENT_PROMPT = """
 
 MATCH_AGENT_PROMPT = """\
 # 任务
-对比 JD 要求和候选人信息，给出匹配度评分。**必须严格使用下面的计算公式，不要主观判断。**
+你是资深招聘评估专家。对比 JD 要求和候选人信息，给出匹配度评分和能力评估。发挥你的语义理解能力——你不是计算器，你是能读懂简历背后含义的HR专家。
 
 # 输入
 <jd> JD JSON, <candidate> 候选人 JSON, <weights> 权重, <preferences> HR偏好
 
-# ======== 硬性评分公式（必须逐条套用）========
+# ======== 评分规则 ========
 
-## 一、技能分（每个 JD 要求的技能单独评分，然后取平均）
-单个技能评分规则：
-- 候选人简历中明确列出同名或近义词 → 100
-- 候选人有同类可迁移技能 → 固定 70，不得改
-  可迁移对照表（只允许以下映射）：
-  Flask <-> Django <-> FastAPI
-  MySQL <-> PostgreSQL
-  React <-> Vue <-> Angular
-  PyTorch <-> TensorFlow
-  Docker <-> K8s
-- JD 技能在候选人简历中完全找不到 → 0
+## 技能匹配（逐个评判，发挥语义理解）
+- 同名技能 → 100%
+- 同类可迁移 → 70%（参考但不限于以下映射：Flask↔Django↔FastAPI, MySQL↔PostgreSQL, React↔Vue, PyTorch↔TensorFlow, Docker↔K8s。遇到映射表外的技能，用你的专业知识判断是否可迁移）
+- 完全不同方向 → 0%
+- 技能年限打折：候选人年限够用 → 不打折；明显不足 → 适度扣分
 
-JD技能总分 = 所有JD技能得分之和 / JD技能数量
-技能维度最终分 = JD技能总分 x (候选人技能年限 / max(JD要求年限, 1))
+## 学历匹配
+- 同级100 / 高一级110 / 低一级上限70
+- 专业完全匹配100 / 相关80 / 不相关60
 
-## 二、学历分
-- 学历同级 → 100
-- 学历高一级 → 110
-- 学历低一级 → 70
-- 专业完全匹配 → 100
-- 专业相关 → 80
-- 专业不相关 → 60
-最终学历分 = (学历匹配分 + 专业匹配分) / 2
+## 经验匹配
+- 够用→100，基本够→按比例，差太多→上限50
 
-## 三、经验分
-- 候选人年限 >= JD要求年限 → 100
-- 候选人年限 >= JD要求年限 x 0.6 → INT(候选人年限 / JD要求年限 x100)
-- 候选人年限 < JD要求年限 x 0.6 → 50
+## 加权
+总分 = 技能分×权重 + 学历分×权重 + 经验分×权重
 
-## 四、加权总分
-INT(技能分 x 技能权重% + 学历分 x 学历权重% + 经验分 x 经验权重%)
+## 能力评估（不影响总分，发挥你的判断力）
+从以下几个维度综合评价候选人的真实能力水平：
+- 项目深度：描述空洞还是言之有物
+- 技能自洽：技能栏和项目栏是否互相印证
+- 成长潜力：技能栈广度、项目复杂度、学习轨迹
+- 亮点标记：证书、奖项、开源贡献等加分项
 
-# ======== 输出 JSON ========
+## HR偏好（不影响总分）
+匹配的标注证据，不匹配的标注原因。
+
+# 步骤
+1. 阅读候选人简历，理解其真实技术背景
+2. 逐项对比JD要求，用上述规则打分
+3. 综合评估候选人能力水平
+4. 生成2-3个有针对性的面试追问
+
+# 输出 JSON
 {
   "overall_score": 0,
-  "calculation": "技能Xx50% + 学历Yx20% + 经验Zx30% = 总分",
+  "calculation": "技能Xx权重 + 学历Yx权重 + 经验Zx权重 = 总分",
   "dimensions": {
     "skills": {"score": 0, "matched": [], "partial": [], "missing": [], "reason": ""},
     "education": {"score": 0, "reason": ""},
     "experience": {"score": 0, "reason": ""}
   },
   "preferences": [{"text": "", "matched": false, "note": ""}],
-  "quality_notes": [],
+  "capability_assessment": {"depth": "", "self_consistency": "", "growth_potential": "", "highlights": "", "summary": ""},
   "strengths": [],
   "gaps": [],
   "interview_questions": []
@@ -133,7 +133,8 @@ MATCH_FEWSHOT_EXAMPLE = """
     "experience":{"score":67,"reason":"2年/3年=67%, 高于60%阈值"}
   },
   "preferences":[{"text":"开源贡献","matched":false,"note":"简历中无GitHub或开源项目提及"}],
-  "quality_notes":["订单系统项目有量化数据(日处理1000单)"],
+  "capability_assessment": {"depth":"项目有量化数据，日处理1000单","self_consistency":"Flask经验与项目匹配","growth_potential":"Python基础扎实，可迁移至Django","highlights":"无","summary":"技术水平扎实，经验略有不足"},
+
   "strengths":["Python基础扎实","Flask经验可迁移至Django"],
   "gaps":["Django直接经验缺失","工作年限与要求差距1年"],
   "interview_questions":["如果从Flask迁移到Django，你会怎么设计？","参与过开源项目吗？"]
