@@ -38,7 +38,7 @@
           <div class="detail-grid">
             <div class="detail-block"><p class="d-label">计算过程</p><p>{{ r.parsed?.calculation||'无' }}</p></div>
             <div class="detail-block"><p class="d-label">不足之处</p><p>{{ (r.parsed?.gaps||[]).join('；')||'无' }}</p></div>
-            <div class="detail-block"><p class="d-label">含金量评估</p><p>{{ (r.parsed?.quality_notes||[]).join('；')||'无' }}</p></div>
+            <div class="detail-block"><p class="d-label">能力评估</p><p>{{ r.parsed?.capability_assessment?.summary||'无' }}</p></div>
             <div class="detail-block"><p class="d-label">面试建议</p><ul><li v-for="q in (r.parsed?.interview_questions||[])":key="q">{{ q }}</li></ul></div>
           </div>
         </details>
