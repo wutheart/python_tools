@@ -47,19 +47,32 @@ PyMuPDF + python-docx 统一管道，支持单页/多页 PDF、标准段落和�
 
 ## 快速开始
 
+### 1. 配置 API Key
+
 ```bash
-# 后端
 cd backend
+cp deepseek.env.example deepseek.env
+# 编辑 deepseek.env，填入你的 API Key
+```
+
+需要 [DeepSeek API Key](https://platform.deepseek.com/)（必填）和 [Tavily API Key](https://tavily.com/)（可选，用于证书联网验证）。
+
+### 2. 启动后端
+
+```bash
 pip install -r requirements.txt
 python -m uvicorn main:app --port 8000
+```
 
-# 前端
-cd frontend
+### 3. 启动前端
+
+```bash
+cd ../frontend
 npm install
 npm run dev
 ```
 
-打开 `http://localhost:3000`，输入 `deepseek.env` 配置 API Key。
+打开 `http://localhost:3000`。
 
 ## 项目结构
 
